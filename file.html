@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VibeWear | Streetwear Reimagined</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <header>
+    <h1 class="logo">VibeWear</h1>
+    <nav>
+      <ul>
+        <li><a href="#shop">Shop</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+    </nav>
+    <button class="cart-btn">🛍️</button>
+  </header>
+
+  <section class="hero">
+    <div class="hero-text">
+      <h2>Style that speaks <span>your vibe</span>.</h2>
+      <button onclick="scrollToSection('shop')">Shop Now</button>
+    </div>
+  </section>
+
+  <main id="shop">
+    <h2>Shop the Drop</h2>
+    <div class="product-grid">
+      <!-- Sample products -->
+      <div class="product">
+        <img src="images/jacket1.jpg" alt="Denim Jacket" />
+        <h3>Denim Dream Jacket</h3>
+        <p>$69.99</p>
+        <button>Add to Cart</button>
+      </div>
+      <div class="product">
+        <img src="images/hoodie1.jpg" alt="Street Hoodie" />
+        <h3>Neon Street Hoodie</h3>
+        <p>$59.99</p>
+        <button>Add to Cart</button>
+      </div>
+      <div class="product">
+        <img src="images/pants1.jpg" alt="Cargo Pants" />
+        <h3>Cargo Flex Pants</h3>
+        <p>$54.99</p>
+        <button>Add to Cart</button>
+      </div>
+    </div>
+  </main>
+
+  <section id="about">
+    <h2>About Us</h2>
+    <p>VibeWear is a Gen Z fashion collective redefining streetwear for self-expression. Designed to match your mood, built for your hustle.</p>
+  </section>
+
+  <footer id="contact">
+    <h2>Contact</h2>
+    <form>
+      <input type="email" placeholder="Your email" required />
+      <textarea placeholder="Say hey!"></textarea>
+      <button type="submit">Send</button>
+    </form>
+    <p>© 2024 VibeWear</p>
+  </footer>
+</body>
+</html>
