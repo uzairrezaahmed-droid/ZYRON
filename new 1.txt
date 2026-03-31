@@ -1,0 +1,179 @@
+// 🚀 ZYRON PRODUCTION-LEVEL FULL STACK STORE
+// Tech Stack: Node.js + Express + MongoDB + Razorpay + JWT Auth
+
+// ================= BACKEND =================
+// STEP 1: Install dependencies
+// npm init -y
+// npm install express mongoose cors dotenv jsonwebtoken bcryptjs razorpay
+
+// STEP 2: Create server.js
+
+require('dotenv').config();
+const express = require('express');
+const mongoose = require('mongoose');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const Razorpay = require('razorpay');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// 🔌 MongoDB Connection
+mongoose.connect(process.env.MONGO_URI)
+.then(()=>console.log("MongoDB Connected"))
+.catch(err=>console.log(err));
+
+// 🧠 Models
+const User = mongoose.model('User', {
+  email: String,
+  password: String
+});
+
+const Order = mongoose.model('Order', {
+  userId: String,
+  items: Array,
+  total: Number
+});
+
+// 🔐 Auth Routes
+app.post('/signup', async (req,res)=>{
+  const hashed = await bcrypt.hash(req.body.password,10);
+  const user = await User.create({email:req.body.email,password:hashed});
+  res.json(user);
+});
+
+app.post('/login', async (req,res)=>{
+  const user = await User.findOne({email:req.body.email});
+  if(!user) return res.status(400).send("User not found");
+
+  const valid = await bcrypt.compare(req.body.password,user.password);
+  if(!valid) return res.status(400).send("Invalid password");
+
+  const token = jwt.sign({id:user._id},"secret");
+  res.json({token});
+});
+
+// 🛍 Products
+const products = [
+  { id:1,name:"Red Tee",price:7,color:"red" },
+  { id:2,name:"Black Tee",price:7,color:"black" },
+  { id:3,name:"White Tee",price:7,color:"white" },
+  { id:4,name:"Green Tee",price:7,color:"green" },
+  { id:5,name:"Navy Tee",price:7,color:"navy" }
+];
+
+app.get('/products',(req,res)=>res.json(products));
+
+// 💳 Razorpay Setup
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY,
+  key_secret: process.env.RAZORPAY_SECRET
+});
+
+app.post('/create-order', async (req,res)=>{
+  const options = {
+    amount: req.body.amount * 100,
+    currency: "INR"
+  };
+  const order = await razorpay.orders.create(options);
+  res.json(order);
+});
+
+// 📦 Save Order
+app.post('/order', async (req,res)=>{
+  const newOrder = await Order.create(req.body);
+  res.json(newOrder);
+});
+
+app.listen(3000,()=>console.log("Server running"));
+
+
+// ================= FRONTEND =================
+// index.html (Gen Z UI + Auth + Payment)
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>ZYRON</title>
+<style>
+body{background:#0f0f0f;color:white;font-family:sans-serif}
+.card{background:#1a1a1a;padding:15px;margin:10px;border-radius:10px}
+button{padding:10px;background:#00f2ff;border:none}
+</style>
+</head>
+<body>
+
+<h1>ZYRON 🔥</h1>
+
+<input id="email" placeholder="email">
+<input id="password" type="password" placeholder="password">
+<button onclick="signup()">Signup</button>
+<button onclick="login()">Login</button>
+
+<div id="products"></div>
+<button onclick="checkout()">Checkout</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+let token="";
+let cart=[];
+
+function signup(){
+fetch('http://localhost:3000/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,password:password.value})});
+}
+
+function login(){
+fetch('http://localhost:3000/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email.value,password:password.value})})
+.then(res=>res.json()).then(data=>token=data.token);
+}
+
+fetch('http://localhost:3000/products')
+.then(res=>res.json())
+.then(data=>{
+  data.forEach(p=>{
+    let div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`<div style="height:100px;background:${p.color}"></div><h3>${p.name}</h3><p>$${p.price}</p><button onclick='add(${JSON.stringify(p)})'>Add</button>`;
+    document.body.appendChild(div);
+  });
+});
+
+function add(p){cart.push(p);alert('added');}
+
+function checkout(){
+let total=cart.reduce((a,b)=>a+b.price,0);
+
+fetch('http://localhost:3000/create-order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({amount:total})})
+.then(res=>res.json())
+.then(order=>{
+
+var options={
+  key:"YOUR_KEY",
+  amount:order.amount,
+  currency:"INR",
+  order_id:order.id,
+  handler:function(response){
+    fetch('http://localhost:3000/order',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({items:cart,total})});
+    alert("Payment Success");
+  }
+};
+
+var rzp=new Razorpay(options);
+rzp.open();
+});
+}
+</script>
+
+</body>
+</html>
+
+
+// ================= ENV FILE =================
+// create .env file
+
+MONGO_URI=your_mongodb_connection
+RAZORPAY_KEY=your_key
+RAZORPAY_SECRET=your_secret
+
